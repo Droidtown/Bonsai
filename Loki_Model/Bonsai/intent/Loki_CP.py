@@ -57,13 +57,25 @@ def getResult(inputSTR, utterance, args, resultDICT, refDICT, pattern=""):
             resultDICT["response"] = getResponse(utterance, args)
             resultDICT["source"] = "reply"
         else:
+<<<<<<< HEAD
             resultDICT["CP"].append(args[1])
+=======
+            # write your code here
+            # resultDICT[key].append(value)
+            pass
+>>>>>>> master
 
     if utterance == "我認為":
         if CHATBOT_MODE:
             resultDICT["response"] = getResponse(utterance, args)
             resultDICT["source"] = "reply"
         else:
+<<<<<<< HEAD
             resultDICT["CP"].append(args[1])
+=======
+            # write your code here
+            # resultDICT[key].append(value)
+            pass
+>>>>>>> master
 
     return resultDICT
