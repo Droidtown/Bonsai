@@ -14,8 +14,8 @@ class TransformationalGrammar:
         self.whoPAT = re.compile("<CLAUSE_whoQ>[^<]+</CLAU>")
         self.twPAT = {"who" :re.compile("(?<=<ENTITY_person>)[^<]+(?=</ENTITY_person><A[CU])|(?<=<ENTITY_pronoun>)[^<]+(?=</ENTITY_pronoun><A[CU])"),
                       "what":re.compile("((?<=<ENTITY_oov>)|(?<=<ENTITY_noun>)|(?<=<ENTITY_nouny>)|(?<=<ENTITY_nounHead>))[^<]+((?=</ENTITY_oov>(?!<RANGE))|(?=</ENTITY_noun>(?!<RANGE))|(?=</ENTITY_nouny>(?!<RANGE))|(?=</ENTITY_nounHead>(?!<RANGE)))"),
-                      "where":re.compile("((?=</FUNC_inner><LOCATION>).*)"),
-                      "yesno":re.compile("((?!=</ENTITY_pronoun><AUX>[^<+]</AUX>).*)")
+                    #   "where":re.compile("((?=</FUNC_inner><LOCATION>).*)"),
+                      "yesno":re.compile("((?!=</ENTITY_[^>+]</AUX>).*)")
                       }
         if online == False:
             self.url = ""
