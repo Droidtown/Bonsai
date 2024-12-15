@@ -59,7 +59,10 @@ class TransformationalGrammar:
                 pass
             else:
                 if self.lang == "tw":
-                    self.QDICT["who"].append(self.purgePAT.sub("", self.twPAT["who"].sub("誰", resultDICT["result_pos"][i], count=1))+"呢？")
+                    if resultDICT["result_pos"][i].endswith("呢</CLAUSE_particle>"):
+                        pass
+                    else:
+                        self.QDICT["who"].append(self.purgePAT.sub("", self.twPAT["who"].sub("誰", resultDICT["result_pos"][i], count=1))+"呢？")
         return None
 
     def _whatQ(self, resultDICT):
@@ -71,8 +74,10 @@ class TransformationalGrammar:
                 pass
             else:
                 if self.lang == "tw":
-                    print(resultDICT["result_pos"][i])
-                    self.QDICT["what"].append(self.purgePAT.sub("", self.twPAT["what"].sub("什麼", resultDICT["result_pos"][i], count=1))+"呢？")
+                    if resultDICT["result_pos"][i].endswith("呢</CLAUSE_particle>"):
+                        pass
+                    else:
+                        self.QDICT["what"].append(self.purgePAT.sub("", self.twPAT["what"].sub("什麼", resultDICT["result_pos"][i], count=1))+"呢？")
         return None
 
     #def _whereQ(self, resultDICT):
@@ -97,13 +102,15 @@ class TransformationalGrammar:
                 pass
             else:
                 if self.lang == "tw":
-                    if self.twPAT["yesno"].search(self.purgePAT.sub("", resultDICT["result_pos"][i])) == None:
+                    if resultDICT["result_pos"][i].endswith("呢</CLAUSE_particle>"):
+                        pass
+                    elif self.twPAT["yesno"].search(self.purgePAT.sub("", resultDICT["result_pos"][i])) == None:
                         self.QDICT["yesno"].append(self.purgePAT.sub("", resultDICT["result_pos"][i])+"嗎？")
         return None
 
 if __name__ == "__main__":
     tg = TransformationalGrammar(lang="tw")
-    resultDICT = tg.makeQ("川普出生並成長於紐約州紐約市皇后區，他是美國歷史上最富有的總統")
+    resultDICT = tg.makeQ("川普出生並成長於紐約州紐約市皇后區，他是美國歷史上最富有的總統，他是不是美國歷史上最富有的總統呢")
     #resultDICT = tg._whatQ("川普出生並成長於紐約州紐約市皇后區，他是美國歷史上最富有的總統")
 
     pprint(resultDICT)
