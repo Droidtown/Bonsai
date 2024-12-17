@@ -11,7 +11,7 @@ class TransformationalGrammar:
         self.apikey = apikey
         self.llmkey = llmkey
         self.purgePAT = re.compile("</?[a-zA-Z]+(_[a-zA-Z]+)?>")
-        self.dynamicUdPAT = re.compile("<ACTION_verb>([^<]+)</ACTION_verb>[^、]+、(<ACTION_verb>\1</ACTION_verb>[^、]+(?=[、，。]))+|(?<=包.</ACTION_verb>)[^：，。]+?、+[^：，。]+?(?=[：，。])")
+        self.dynamicUdPAT = re.compile("<ACTION_verb>([^<]+)</ACTION_verb>[^、]+、(<ACTION_verb>\1</ACTION_verb>[^、]+(?=[、，。]))+|((?<=包.</ACTION_verb>)|(?<=：))[^，。]+(?=[，。])")
         self.twPAT = {"who" :re.compile("(?<=<ENTITY_person>)[^<]+(?=</ENTITY_person><A[CU])|(?<=<ENTITY_pronoun>)[^<]+(?=</ENTITY_pronoun><A[CU])"),
                       "what":re.compile("((?<=<ENTITY_oov>)|(?<=<ENTITY_noun>)|(?<=<ENTITY_nouny>)|(?<=<ENTITY_nounHead>)|(?<=<UserDefined>))[^<]+((?=</ENTITY_oov>(?!<RANGE))|(?=</ENTITY_noun>(?!<RANGE))|(?=</ENTITY_nouny>(?!<RANGE))|(?=</ENTITY_nounHead>(?!<RANGE))|(?=</UserDefined>(?!<RANGE)))"),
                     #   "where":re.compile("((?=</FUNC_inner><LOCATION>).*)"),
