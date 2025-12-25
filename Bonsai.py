@@ -5,6 +5,8 @@ import plotly.graph_objects as go
 from collections import deque
 from datetime import datetime
 
+import re
+splitPAT = re.compile("(?<=>)(?=<)")
 
 # ## 以 Graph 建立句法樹 ######################################
 
@@ -335,57 +337,81 @@ def ccommandWithAlg(inputDICT, commander="w1", commandee=""):
     return result, time
 
 
+def bbtree(inputPOS):
+    resultSTR = ""
+    resultLIST = []
+    posLIST = splitPAT.split(inputPOS)
+    for i in posLIST:
+        if i in leftMergeLIST:
+
+        elif i in rightMergeLIST:
+
+        else:
+
+    return resultSTR
 
 if __name__ == "__main__":
 
-    print("\n#以 Graph 建立句法樹 >>>")
-    sentenceLengthLIST = [10, 100, 1000]
-    for l in sentenceLengthLIST:
-        sentenceLength = l
-        inputSentence = ""
-        for i in range(sentenceLength):
-            inputSentence += f"w{i + 1}"
-        result = treeMaker(inputSentence)
-        tree = result[0]
-        time = result[1]
-        print(f"句子字數:{l:<5}; 以二元樹建立句法樹，需耗時：{time}")
-        #visualize_tree() 只是為了視覺化，不涉及計算
+    inputSTR = "那個帽子是紫色的女孩坐在長凳上"
+
+    #["<ENTITY_DetPhrase>那個</ENTITY_DetPhrase>", "<ENTITY_noun>帽子</ENTITY_noun>", "<AUX>是</AUX>", "<MODIFIER_color>紫色</MODIFIER_color>", "<FUNC_inner>的</FUNC_inner>", "<ENTITY_nouny>女孩</ENTITY_nouny>", "<ACTION_verb>坐</ACTION_verb>", "<FUNC_inner>在</FUNC_inner>", "<ENTITY_nouny>長凳</ENTITY_nouny>", "<RANGE_locality>上</RANGE_locality>"]
+    #["((那個((帽子(是(紫色的)))女孩))(坐(在(長凳上))))"]
+
+    from ArticutAPI import Articut
+    articut = Articut()
+    resultDICT = articut.parse(inputSTR)
+
+    bbtree(inputPOS)
+
+
+    #print("\n#以 Graph 建立句法樹 >>>")
+    #sentenceLengthLIST = [10, 100, 1000]
+    #for l in sentenceLengthLIST:
+        #sentenceLength = l
+        #inputSentence = ""
+        #for i in range(sentenceLength):
+            #inputSentence += f"w{i + 1}"
+        #result = treeMaker(inputSentence)
+        #tree = result[0]
+        #time = result[1]
+        ##print(f"句子字數:{l:<5}; 以二元樹建立句法樹，需耗時：{time}")
+        ##visualize_tree() #只是為了視覺化，不涉及計算
         #visualize_tree(tree)
-        ccmdresult = ccommandWithTree(tree, commandee=f"w{l}")
-        ccommand = ccmdresult[0]
-        ccommand_computation_time = ccmdresult[1]
-        print(f"句子字數:{l:<5}; 在二元樹裡計算 w1 是否 c-command w{l}，需耗時：{ccommand_computation_time}")
+        ##ccmdresult = ccommandWithTree(tree, commandee=f"w{l}")
+        ##ccommand = ccmdresult[0]
+        ##ccommand_computation_time = ccmdresult[1]
+        ##print(f"句子字數:{l:<5}; 在二元樹裡計算 w1 是否 c-command w{l}，需耗時：{ccommand_computation_time}")
 
-    print("\n#以 SET 建立句法樹 >>>")
-    sentenceLengthLIST = [10, 100, 1000]
-    for l in sentenceLengthLIST:
-        sentenceLength = l
-        inputSentence = ""
-        for i in range(sentenceLength):
-            inputSentence += f"w{i + 1}"
-        result = setMaker(inputSentence)
-        setrepresentation = result[0]
-        time = result[1]
-        print(f"句子字數:{l:<5}; 以二元集合建立句法樹，需耗時：{time}")
-        ccmdresult = ccommandWithSet(setrepresentation, commandee=f"w{l}")
-        ccommand = ccmdresult[0]
-        ccommand_computation_time = ccmdresult[1]
-        print(f"句子字數:{l:<5}; 在二元素集合裡計算 w1 是否 c-command w{l}，需耗時：{ccommand_computation_time}")
+    #print("\n#以 SET 建立句法樹 >>>")
+    #sentenceLengthLIST = [10, 100, 1000]
+    #for l in sentenceLengthLIST:
+        #sentenceLength = l
+        #inputSentence = ""
+        #for i in range(sentenceLength):
+            #inputSentence += f"w{i + 1}"
+        #result = setMaker(inputSentence)
+        #setrepresentation = result[0]
+        #time = result[1]
+        #print(f"句子字數:{l:<5}; 以二元集合建立句法樹，需耗時：{time}")
+        #ccmdresult = ccommandWithSet(setrepresentation, commandee=f"w{l}")
+        #ccommand = ccmdresult[0]
+        #ccommand_computation_time = ccmdresult[1]
+        #print(f"句子字數:{l:<5}; 在二元素集合裡計算 w1 是否 c-command w{l}，需耗時：{ccommand_computation_time}")
 
 
-    print("\n#以 Constituent Algebra 建立句法樹 >>>")
-    sentenceLengthLIST = [10, 100, 1000]
-    for l in sentenceLengthLIST:
-        sentenceLength = l
-        inputSentence = ""
-        for i in range(sentenceLength):
-            inputSentence += f"w{i + 1}"
-        result = algMaker(inputSentence)
-        linArepresenatation = result[0]
-        time = result[1]
-        #print(linArepresenatation)
-        print(f"句子字數:{l:<5}; 以代數集合建立句法樹，需耗時：{time}")
-        ccmdresult = ccommandWithAlg(linArepresenatation, commandee=set(f"w{l}"))
-        ccommand = ccmdresult[0]
-        ccommand_computation_time = ccmdresult[1]
-        print(f"句子字數:{l:<5}; 在代數集合裡計算 w1 是否 c-command w{l}，需耗時：{ccommand_computation_time}")
+    #print("\n#以 Constituent Algebra 建立句法樹 >>>")
+    #sentenceLengthLIST = [10, 100, 1000]
+    #for l in sentenceLengthLIST:
+        #sentenceLength = l
+        #inputSentence = ""
+        #for i in range(sentenceLength):
+            #inputSentence += f"w{i + 1}"
+        #result = algMaker(inputSentence)
+        #linArepresenatation = result[0]
+        #time = result[1]
+        ##print(linArepresenatation)
+        #print(f"句子字數:{l:<5}; 以代數集合建立句法樹，需耗時：{time}")
+        #ccmdresult = ccommandWithAlg(linArepresenatation, commandee=set(f"w{l}"))
+        #ccommand = ccmdresult[0]
+        #ccommand_computation_time = ccmdresult[1]
+        #print(f"句子字數:{l:<5}; 在代數集合裡計算 w1 是否 c-command w{l}，需耗時：{ccommand_computation_time}")
