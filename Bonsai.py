@@ -7,6 +7,7 @@ from datetime import datetime
 
 import re
 splitPAT = re.compile("(?<=>)(?=<)")
+posPAT = re.compile("(<)>")
 
 # ## 以 Graph 建立句法樹 ######################################
 
@@ -338,17 +339,42 @@ def ccommandWithAlg(inputDICT, commander="w1", commandee=""):
 
 
 def bbtree(inputPOS):
-    resultSTR = ""
+    leftMergeLIST = ["<RANGE_locality>", "<FUNC_inner>的"]
+    rightMergeLIST = ["<FUNC_inner>在", "<AUX>"]
+
+    #resultSTR = ""
     resultLIST = []
     posLIST = splitPAT.split(inputPOS)
-    for i in posLIST:
-        if i in leftMergeLIST:
+    mergeBOOL = True
+    while mergeBOOL:
+        breakCounter = 0
+        for i in reversed(range(len(posLIST))):
+            for l in leftMergeLIST:
+                if posLIST[i].startswith(l):
+                    resultLIST.append(f"({posLIST[i-1]}, {posLIST[i]})")
+                    breakCounter += 1
+                else:
+                    mergeCounter = 0
+            for r in rightMergeLIST:
+                if posLIST[i].startswith(r):
+                    resultLIST.append(f"({posLIST[i]}, {posLIST[i+1]})")
+                    posLIST[i+1] = ""
+                    breakCounter += 1
+                else:
+                    mergeCounter = 0
 
-        elif i in rightMergeLIST:
+            if breakCounter == 1:
+                resultLIST.append(posLIST[i])
+                breakCounter += 1
+            print(resultLIST)
+            posLIST = reversed(resultLIST)[:]
+            resultLIST = []
+            if breakCounter == 0:
+                break
+        mergeBOOL = False
 
-        else:
 
-    return resultSTR
+    return resultLIST
 
 if __name__ == "__main__":
 
@@ -357,10 +383,11 @@ if __name__ == "__main__":
     #["<ENTITY_DetPhrase>那個</ENTITY_DetPhrase>", "<ENTITY_noun>帽子</ENTITY_noun>", "<AUX>是</AUX>", "<MODIFIER_color>紫色</MODIFIER_color>", "<FUNC_inner>的</FUNC_inner>", "<ENTITY_nouny>女孩</ENTITY_nouny>", "<ACTION_verb>坐</ACTION_verb>", "<FUNC_inner>在</FUNC_inner>", "<ENTITY_nouny>長凳</ENTITY_nouny>", "<RANGE_locality>上</RANGE_locality>"]
     #["((那個((帽子(是(紫色的)))女孩))(坐(在(長凳上))))"]
 
-    from ArticutAPI import Articut
-    articut = Articut()
-    resultDICT = articut.parse(inputSTR)
-
+    #from ArticutAPI import Articut
+    #articut = Articut()
+    #resultDICT = articut.parse(inputSTR)
+    #inputPOS = resultDICT["result_pos"][0]
+    inputPOS = "".join(["<ENTITY_DetPhrase>那個</ENTITY_DetPhrase>", "<ENTITY_noun>帽子</ENTITY_noun>", "<AUX>是</AUX>", "<MODIFIER_color>紫色</MODIFIER_color>", "<FUNC_inner>的</FUNC_inner>", "<ENTITY_nouny>女孩</ENTITY_nouny>", "<ACTION_verb>坐</ACTION_verb>", "<FUNC_inner>在</FUNC_inner>", "<ENTITY_nouny>長凳</ENTITY_nouny>", "<RANGE_locality>上</RANGE_locality>"])
     bbtree(inputPOS)
 
 
