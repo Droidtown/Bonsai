@@ -12,6 +12,7 @@ from Loki_Model.merge.main import askLoki as askLokiMerge
 import re
 splitPAT = re.compile("(?<=>)(?=<)")
 posPAT = re.compile("(<)>")
+purgePAT = re.compile("</?[a-zA-Z]+(_[a-zA-Z]+)?>")
 
 from pprint import pprint
 
@@ -374,6 +375,40 @@ def initialNounMerge(sentenceSTR):
 
     return resultLIST
 
+def link(sentenceLIST, linker):
+    resultLIST = []
+    for i in range(len(sentenceLIST)-1):
+        if sentenceLIST[i+1].startswith(f"{linker}"):
+            resultLIST.append(f"({sentenceLIST[i]}, ({sentenceLIST[i+1]}, {sentenceLIST[i+2]}))")
+            sentenceLIST[i+1] = ""
+            sentenceLIST[i+2] = ""
+        else:
+            resultLIST.append(sentenceLIST[i])
+    resultLIST.append(sentenceLIST[-1])
+    return [word for word in resultLIST if word != ""]
+
+def DP(sentenceLIST, dpTUPL):
+    resultLIST = []
+    for i in range(len(sentenceLIST)-1):
+        if sentenceLIST[i].startswith(dpTUPL[0]) and sentenceLIST[i+2].startswith(dpTUPL[1]):
+            resultLIST.append(f"({sentenceLIST[i]}, ({sentenceLIST[i+1]}, {sentenceLIST[i+2]}))")
+            sentenceLIST[i+1] = ""
+            sentenceLIST[i+2] = ""
+        else:
+            resultLIST.append(sentenceLIST[i])
+    resultLIST.append(sentenceLIST[-1])
+    return [word for word in resultLIST if word != ""]
+
+def VP(sentenceLIST, verb):
+    resultLIST = []
+    for i in range(len(sentenceLIST)-1):
+        if sentenceLIST[i+1].startswith(f"{verb}"):
+            resultLIST.append(f"({sentenceLIST[i]}, {sentenceLIST[i+1]})")
+            sentenceLIST[i+1] = ""
+        else:
+            resultLIST.append(sentenceLIST[i])
+    resultLIST.append(sentenceLIST[-1])
+    return [word for word in resultLIST if word != ""]
 
 def merge(sentenceLIST, head, headParameter):
     if headParameter in ("initial", "final"):
@@ -417,8 +452,10 @@ def merge(sentenceLIST, head, headParameter):
 
 def bbtree(sentenceLIST):
     leftMergeLIST = ["<RANGE_locality>", "<FUNC_inner>的"]
-    rightMergeLIST = ["<FUNC_inner>在", "<AUX>"]
-
+    rightMergeLIST = ["<FUNC_inner>在", "<ACTION_verb>"]
+    linkerMergeLIST = ["<AUX>"]
+    DPLIST = [("<ENTITY_DetPhrase>", "<ENTITY")]
+    VPLIST = [("(<ACTION_")]
     #resultSTR = ""
     resultLIST = []
     for l in leftMergeLIST:
@@ -426,6 +463,14 @@ def bbtree(sentenceLIST):
     for r in rightMergeLIST:
         sentenceLIST =  merge(sentenceLIST, r, "initial")
 
+    for lk in linkerMergeLIST:
+        sentenceLIST =  link(sentenceLIST, lk)
+
+    for dp_t in DPLIST:
+        sentenceLIST = DP(sentenceLIST, dp_t)
+
+    for vp in VPLIST:
+        sentenceLIST = VP(sentenceLIST, vp)
     #mergeBOOL = True
 
 
@@ -437,7 +482,7 @@ def bbtree(sentenceLIST):
 if __name__ == "__main__":
 
     inputSTR = "那個帽子是紫色的女孩坐在紅色長凳上"
-    resultLIST = longNounMerge(inputSTR)
+    resultLIST = finalNounMerge(inputSTR)
     result = bbtree(resultLIST)
     #["<ENTITY_DetPhrase>那個</ENTITY_DetPhrase>", "<ENTITY_noun>帽子</ENTITY_noun>", "<AUX>是</AUX>", "<MODIFIER_color>紫色</MODIFIER_color>", "<FUNC_inner>的</FUNC_inner>", "<ENTITY_nouny>女孩</ENTITY_nouny>", "<ACTION_verb>坐</ACTION_verb>", "<FUNC_inner>在</FUNC_inner>", "<ENTITY_nouny>長凳</ENTITY_nouny>", "<RANGE_locality>上</RANGE_locality>"]
     #["((那個((帽子(是(紫色的)))女孩))(坐(在(長凳上))))"]
@@ -451,6 +496,7 @@ if __name__ == "__main__":
     #l =  ["<ENTITY_DetPhrase>那個</ENTITY_DetPhrase>", "<ENTITY_noun>帽子</ENTITY_noun>", "<AUX>是</AUX>", "<MODIFIER_color>紫色</MODIFIER_color>", "<FUNC_inner>的</FUNC_inner>", "<ENTITY_nouny>女孩</ENTITY_nouny>", "<ACTION_verb>坐</ACTION_verb>", "<FUNC_inner>在</FUNC_inner>", "<ENTITY_nouny>長凳</ENTITY_nouny>", "<RANGE_locality>上</RANGE_locality>"]
     #result = merge(resultLIST, "<RANGE_locality>", "final")
     pprint(result)
+    print(purgePAT.sub("", "".join(result)))
     #result = merge(l, "<ENTITY_DetPhrase>", "initial")
     #print(result)
 
