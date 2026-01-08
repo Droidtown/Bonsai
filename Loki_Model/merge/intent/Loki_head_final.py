@@ -134,6 +134,15 @@ def getResult(inputSTR, utterance, args, resultDICT, refDICT, pattern="", toolki
         else:
             resultDICT["final"].append(args[0])
 
+    if utterance == "他哥哥":
+        if CHATBOT:
+            replySTR = getReply(utterance, args)
+            if replySTR:
+                resultDICT["response"] = replySTR
+                resultDICT["source"] = "reply"
+        else:
+            resultDICT["final"].append(args[0])
+
     if utterance == "不是":
         if CHATBOT:
             replySTR = getReply(utterance, args)

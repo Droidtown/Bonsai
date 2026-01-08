@@ -347,6 +347,7 @@ def ccommandWithAlg(inputDICT, commander="w1", commandee=""):
 
 
 
+
 def finalNounMerge(sentenceSTR):
     headParameter = "final"
     refDICT = {headParameter: []}
@@ -359,7 +360,10 @@ def finalNounMerge(sentenceSTR):
     for n in lokiDICT[headParameter]:
         resultLIST = merge(sentenceLIST, n, headParameter)
 
-    return resultLIST
+    if resultLIST == []:
+        return sentenceLIST
+    else:
+        return resultLIST
 
 def initialNounMerge(sentenceSTR):
     headParameter = "initial"
@@ -379,9 +383,20 @@ def link(sentenceLIST, linker):
     resultLIST = []
     for i in range(len(sentenceLIST)-1):
         if sentenceLIST[i+1].startswith(f"{linker}"):
-            resultLIST.append(f"({sentenceLIST[i]}, ({sentenceLIST[i+1]}, {sentenceLIST[i+2]}))")
-            sentenceLIST[i+1] = ""
-            sentenceLIST[i+2] = ""
+            #<ad-hoc>
+            if sentenceLIST[i+3].startswith("<FUNC_inner>的") and i+4 == len(sentenceLIST):
+                resultLIST.append(f"({sentenceLIST[i]}, ({sentenceLIST[i+1]}, ({sentenceLIST[i+2]}, {sentenceLIST[i+3]})))")
+                sentenceLIST[i+1] = ""
+                sentenceLIST[i+2] = ""
+                sentenceLIST[i+3] = ""
+            elif sentenceLIST[i].startswith("<MODIFIER>"):
+                resultLIST.append(f"({sentenceLIST[i]}, {sentenceLIST[i+1]})")
+                sentenceLIST[i+1] = ""
+            #</ad-hoc>
+            else:
+                resultLIST.append(f"({sentenceLIST[i]}, ({sentenceLIST[i+1]}, {sentenceLIST[i+2]}))")
+                sentenceLIST[i+1] = ""
+                sentenceLIST[i+2] = ""
         else:
             resultLIST.append(sentenceLIST[i])
     resultLIST.append(sentenceLIST[-1])
@@ -389,14 +404,50 @@ def link(sentenceLIST, linker):
 
 def DP(sentenceLIST, dpTUPL):
     resultLIST = []
-    for i in range(len(sentenceLIST)-1):
+    for i in range(len(sentenceLIST)-2):
         if sentenceLIST[i].startswith(dpTUPL[0]) and sentenceLIST[i+2].startswith(dpTUPL[1]):
             resultLIST.append(f"({sentenceLIST[i]}, ({sentenceLIST[i+1]}, {sentenceLIST[i+2]}))")
             sentenceLIST[i+1] = ""
             sentenceLIST[i+2] = ""
+        #<ad-hoc>
+        elif sentenceLIST[i].startswith(dpTUPL[0]) and sentenceLIST[i+1].startswith(dpTUPL[1]):
+            resultLIST.append(f"({sentenceLIST[i]}, {sentenceLIST[i+1]})")
+            sentenceLIST[i+1] = ""
+        #</ad-hoc>
         else:
             resultLIST.append(sentenceLIST[i])
-    resultLIST.append(sentenceLIST[-1])
+    try:
+        resultLIST.append(sentenceLIST[-2])
+    except:
+        pass
+    try:
+        resultLIST.append(sentenceLIST[-1])
+    except:
+        pass
+    return [word for word in resultLIST if word != ""]
+
+def CLP(sentenceLIST, clpTUPL):
+    resultLIST = []
+    for i in range(len(sentenceLIST)-2):
+        if sentenceLIST[i].startswith(clpTUPL[0]) and sentenceLIST[i+2].startswith(clpTUPL[1]):
+            resultLIST.append(f"({sentenceLIST[i]}, ({sentenceLIST[i+1]}, {sentenceLIST[i+2]}))")
+            sentenceLIST[i+1] = ""
+            sentenceLIST[i+2] = ""
+        #<ad-hoc>
+        elif sentenceLIST[i].startswith(clpTUPL[0]) and sentenceLIST[i+1].startswith(clpTUPL[1]):
+            resultLIST.append(f"({sentenceLIST[i]}, {sentenceLIST[i+1]})")
+            sentenceLIST[i+1] = ""
+        #</ad-hoc>
+        else:
+            resultLIST.append(sentenceLIST[i])
+    try:
+        resultLIST.append(sentenceLIST[-2])
+    except:
+        pass
+    try:
+        resultLIST.append(sentenceLIST[-1])
+    except:
+        pass
     return [word for word in resultLIST if word != ""]
 
 def VP(sentenceLIST, verb):
@@ -440,22 +491,28 @@ def merge(sentenceLIST, head, headParameter):
 
     for i in reversed(range(len(sentenceLIST))):
         if sentenceLIST[i-indexShift].startswith(f"{head}"):
-            resultLIST.append(f"({sentenceLIST[i-1]}, {sentenceLIST[i]})")
-            sentenceLIST[i-1] = ""
+            #<ad-hoc>
+            if head == "<FUNC_inner>的" and i+1 == len(sentenceLIST):
+                resultLIST.append(sentenceLIST[i])
+            else:
+            #</ad-hoc>
+                resultLIST.append(f"({sentenceLIST[i-1]}, {sentenceLIST[i]})")
+                sentenceLIST[i-1] = ""
         else:
             resultLIST.append(sentenceLIST[i])
 
     return [word for word in reversed(resultLIST) if word!=""]
 
 
+def bbtree(inputSTR):
+    sentenceLIST = finalNounMerge(inputSTR)
 
-
-def bbtree(sentenceLIST):
     leftMergeLIST = ["<RANGE_locality>", "<FUNC_inner>的"]
     rightMergeLIST = ["<FUNC_inner>在", "<ACTION_verb>"]
     linkerMergeLIST = ["<AUX>"]
-    DPLIST = [("<ENTITY_DetPhrase>", "<ENTITY")]
+    DPLIST = [("<ENTITY_DetPhrase>", "<ENTITY"), ("(<ENTITY_pronoun>", "<ENTITY")]
     VPLIST = [("(<ACTION_")]
+    CLPLIST = [("<ENTITY_classifier>", "<ENTITY")]
     #resultSTR = ""
     resultLIST = []
     for l in leftMergeLIST:
@@ -469,34 +526,31 @@ def bbtree(sentenceLIST):
     for dp_t in DPLIST:
         sentenceLIST = DP(sentenceLIST, dp_t)
 
+    for clp in CLPLIST:
+        sentenceLIST = CLP(sentenceLIST, clp)
+
     for vp in VPLIST:
         sentenceLIST = VP(sentenceLIST, vp)
     #mergeBOOL = True
 
-
-
-    resultLIST = sentenceLIST
+    #<ad-hoc>
+    if len(sentenceLIST) == 2:
+        resultLIST = [f"({','.join(sentenceLIST)})"]
+    #</ad-hoc>
+    else:
+        resultLIST = sentenceLIST
 
     return resultLIST
 
 if __name__ == "__main__":
 
-    inputSTR = "那個帽子是紫色的女孩坐在紅色長凳上"
-    resultLIST = finalNounMerge(inputSTR)
-    result = bbtree(resultLIST)
-    #["<ENTITY_DetPhrase>那個</ENTITY_DetPhrase>", "<ENTITY_noun>帽子</ENTITY_noun>", "<AUX>是</AUX>", "<MODIFIER_color>紫色</MODIFIER_color>", "<FUNC_inner>的</FUNC_inner>", "<ENTITY_nouny>女孩</ENTITY_nouny>", "<ACTION_verb>坐</ACTION_verb>", "<FUNC_inner>在</FUNC_inner>", "<ENTITY_nouny>長凳</ENTITY_nouny>", "<RANGE_locality>上</RANGE_locality>"]
-    #["((那個((帽子(是(紫色的)))女孩))(坐(在(長凳上))))"]
-
-    #from ArticutAPI import Articut
-    #articut = Articut()
-    #resultDICT = articut.parse(inputSTR)
-    #inputPOS = resultDICT["result_pos"][0]
-    #inputPOS = "".join(["<ENTITY_DetPhrase>那個</ENTITY_DetPhrase>", "<ENTITY_noun>帽子</ENTITY_noun>", "<AUX>是</AUX>", "<MODIFIER_color>紫色</MODIFIER_color>", "<FUNC_inner>的</FUNC_inner>", "<ENTITY_nouny>女孩</ENTITY_nouny>", "<ACTION_verb>坐</ACTION_verb>", "<FUNC_inner>在</FUNC_inner>", "<ENTITY_nouny>長凳</ENTITY_nouny>", "<RANGE_locality>上</RANGE_locality>"])
-    #bbtree(inputPOS)
-    #l =  ["<ENTITY_DetPhrase>那個</ENTITY_DetPhrase>", "<ENTITY_noun>帽子</ENTITY_noun>", "<AUX>是</AUX>", "<MODIFIER_color>紫色</MODIFIER_color>", "<FUNC_inner>的</FUNC_inner>", "<ENTITY_nouny>女孩</ENTITY_nouny>", "<ACTION_verb>坐</ACTION_verb>", "<FUNC_inner>在</FUNC_inner>", "<ENTITY_nouny>長凳</ENTITY_nouny>", "<RANGE_locality>上</RANGE_locality>"]
-    #result = merge(resultLIST, "<RANGE_locality>", "final")
-    pprint(result)
-    print(purgePAT.sub("", "".join(result)))
+    inputLIST = ["那個帽子是紫色的女孩坐在紅色長凳上", "他哥哥是幹什麼的", "我的家在北京", "明明是一個可愛的孩子"]
+    for i in inputLIST:
+        print(i)
+        result = bbtree(i)
+        #pprint(result)
+        print(purgePAT.sub("", "".join(result)))
+        print("")
     #result = merge(l, "<ENTITY_DetPhrase>", "initial")
     #print(result)
 
