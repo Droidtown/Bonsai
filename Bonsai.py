@@ -495,9 +495,12 @@ def merge(sentenceLIST, head, headParameter):
             if head == "<FUNC_inner>的" and i+1 == len(sentenceLIST):
                 resultLIST.append(sentenceLIST[i])
             else:
+                if i == 0:
+                    resultLIST.append(sentenceLIST[i])
             #</ad-hoc>
-                resultLIST.append(f"({sentenceLIST[i-1]}, {sentenceLIST[i]})")
-                sentenceLIST[i-1] = ""
+                else:
+                    resultLIST.append(f"({sentenceLIST[i-1]}, {sentenceLIST[i]})")
+                    sentenceLIST[i-1] = ""
         else:
             resultLIST.append(sentenceLIST[i])
 
@@ -533,7 +536,7 @@ def bbtree(inputSTR):
         sentenceLIST = VP(sentenceLIST, vp)
 
     #<ad-hoc>
-    if len(sentenceLIST) == 2:
+    if len(sentenceLIST) <= 2:
         resultLIST = [f"({','.join(sentenceLIST)})"]
     #</ad-hoc>
     else:
@@ -553,6 +556,7 @@ if __name__ == "__main__":
                  "紅的", "中文的", "賣菜的", "寫字用的",
                  "麥克在北京語言文化大學學習漢語"
                  ]
+    #inputLIST =  ["我去"]
     for i in inputLIST:
         print(i)
         result = bbtree(i)
