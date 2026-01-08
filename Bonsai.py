@@ -1,13 +1,20 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 
-import plotly.graph_objects as go
+#import plotly.graph_objects as go
 from collections import deque
 from datetime import datetime
 
+from ArticutAPI import Articut
+articut = Articut()
+
+from Loki_Model.merge.main import askLoki as askLokiMerge
 import re
 splitPAT = re.compile("(?<=>)(?=<)")
 posPAT = re.compile("(<)>")
+purgePAT = re.compile("</?[a-zA-Z]+(_[a-zA-Z]+)?>")
+
+from pprint import pprint
 
 # ## 以 Graph 建立句法樹 ######################################
 
@@ -338,48 +345,145 @@ def ccommandWithAlg(inputDICT, commander="w1", commandee=""):
     return result, time
 
 
-def bbtree(inputPOS):
-    leftMergeLIST = ["<RANGE_locality>", "<FUNC_inner>的"]
-    rightMergeLIST = ["<FUNC_inner>在", "<AUX>"]
 
+
+def finalNounMerge(sentenceSTR):
+    headParameter = "final"
+    refDICT = {headParameter: []}
+    lokiDICT = askLokiMerge(sentenceSTR, refDICT=refDICT)
+
+    articutDICT = articut.parse(sentenceSTR)
+    sentenceLIST = splitPAT.split(articutDICT["result_pos"][0])
+
+    resultLIST = []
+    for n in lokiDICT[headParameter]:
+        resultLIST = merge(sentenceLIST, n, headParameter)
+
+    return resultLIST
+
+def initialNounMerge(sentenceSTR):
+    headParameter = "initial"
+    refDICT = {headParameter: []}
+    lokiDICT = askLokiMerge(sentenceSTR, refDICT=refDICT)
+
+    articutDICT = articut.parse(sentenceSTR)
+    sentenceLIST = splitPAT.split(articutDICT["result_pos"][0])
+
+    resultLIST = []
+    for n in lokiDICT[headParameter]:
+        resultLIST = merge(sentenceLIST, n, headParameter)
+
+    return resultLIST
+
+def link(sentenceLIST, linker):
+    resultLIST = []
+    for i in range(len(sentenceLIST)-1):
+        if sentenceLIST[i+1].startswith(f"{linker}"):
+            resultLIST.append(f"({sentenceLIST[i]}, ({sentenceLIST[i+1]}, {sentenceLIST[i+2]}))")
+            sentenceLIST[i+1] = ""
+            sentenceLIST[i+2] = ""
+        else:
+            resultLIST.append(sentenceLIST[i])
+    resultLIST.append(sentenceLIST[-1])
+    return [word for word in resultLIST if word != ""]
+
+def DP(sentenceLIST, dpTUPL):
+    resultLIST = []
+    for i in range(len(sentenceLIST)-1):
+        if sentenceLIST[i].startswith(dpTUPL[0]) and sentenceLIST[i+2].startswith(dpTUPL[1]):
+            resultLIST.append(f"({sentenceLIST[i]}, ({sentenceLIST[i+1]}, {sentenceLIST[i+2]}))")
+            sentenceLIST[i+1] = ""
+            sentenceLIST[i+2] = ""
+        else:
+            resultLIST.append(sentenceLIST[i])
+    resultLIST.append(sentenceLIST[-1])
+    return [word for word in resultLIST if word != ""]
+
+def VP(sentenceLIST, verb):
+    resultLIST = []
+    for i in range(len(sentenceLIST)-1):
+        if sentenceLIST[i+1].startswith(f"{verb}"):
+            resultLIST.append(f"({sentenceLIST[i]}, {sentenceLIST[i+1]})")
+            sentenceLIST[i+1] = ""
+        else:
+            resultLIST.append(sentenceLIST[i])
+    resultLIST.append(sentenceLIST[-1])
+    return [word for word in resultLIST if word != ""]
+
+def merge(sentenceLIST, head, headParameter):
+    if headParameter in ("initial", "final"):
+        pass
+    else:
+        headParameter = "initial"
+
+    resultLIST = []
+    #if headParameter == "initial":
+        #for i in reversed(range(len(sentenceLIST))):
+            #if sentenceLIST[i-1].startswith(f"<{head}>"):
+                #resultLIST.append(f"({sentenceLIST[i-1]}, {sentenceLIST[i]})")
+                #sentenceLIST[i-1] = ""
+            #else:
+                #resultLIST.append(sentenceLIST[i])
+    #else: #headParameter == "final":
+        #for i in reversed(range(len(sentenceLIST))):
+            #if sentenceLIST[i].startswith(f"<{head}>"):
+                #resultLIST.append(f"({sentenceLIST[i-1]}, {sentenceLIST[i]})")
+                #sentenceLIST[i-1] = ""
+            #else:
+                #resultLIST.append(sentenceLIST[i])
+
+    #Performance version: I guess this is harder for linguists to understand what is happening here.
+    if headParameter == "initial":
+        indexShift = 1
+    else:
+        indexShift = 0
+
+    for i in reversed(range(len(sentenceLIST))):
+        if sentenceLIST[i-indexShift].startswith(f"{head}"):
+            resultLIST.append(f"({sentenceLIST[i-1]}, {sentenceLIST[i]})")
+            sentenceLIST[i-1] = ""
+        else:
+            resultLIST.append(sentenceLIST[i])
+
+    return [word for word in reversed(resultLIST) if word!=""]
+
+
+
+
+def bbtree(sentenceLIST):
+    leftMergeLIST = ["<RANGE_locality>", "<FUNC_inner>的"]
+    rightMergeLIST = ["<FUNC_inner>在", "<ACTION_verb>"]
+    linkerMergeLIST = ["<AUX>"]
+    DPLIST = [("<ENTITY_DetPhrase>", "<ENTITY")]
+    VPLIST = [("(<ACTION_")]
     #resultSTR = ""
     resultLIST = []
-    posLIST = splitPAT.split(inputPOS)
-    mergeBOOL = True
-    while mergeBOOL:
-        breakCounter = 0
-        for i in reversed(range(len(posLIST))):
-            for l in leftMergeLIST:
-                if posLIST[i].startswith(l):
-                    resultLIST.append(f"({posLIST[i-1]}, {posLIST[i]})")
-                    breakCounter += 1
-                else:
-                    mergeCounter = 0
-            for r in rightMergeLIST:
-                if posLIST[i].startswith(r):
-                    resultLIST.append(f"({posLIST[i]}, {posLIST[i+1]})")
-                    posLIST[i+1] = ""
-                    breakCounter += 1
-                else:
-                    mergeCounter = 0
+    for l in leftMergeLIST:
+        sentenceLIST =  merge(sentenceLIST, l, "final")
+    for r in rightMergeLIST:
+        sentenceLIST =  merge(sentenceLIST, r, "initial")
 
-            if breakCounter == 1:
-                resultLIST.append(posLIST[i])
-                breakCounter += 1
-            print(resultLIST)
-            posLIST = reversed(resultLIST)[:]
-            resultLIST = []
-            if breakCounter == 0:
-                break
-        mergeBOOL = False
+    for lk in linkerMergeLIST:
+        sentenceLIST =  link(sentenceLIST, lk)
 
+    for dp_t in DPLIST:
+        sentenceLIST = DP(sentenceLIST, dp_t)
+
+    for vp in VPLIST:
+        sentenceLIST = VP(sentenceLIST, vp)
+    #mergeBOOL = True
+
+
+
+    resultLIST = sentenceLIST
 
     return resultLIST
 
 if __name__ == "__main__":
 
-    inputSTR = "那個帽子是紫色的女孩坐在長凳上"
-
+    inputSTR = "那個帽子是紫色的女孩坐在紅色長凳上"
+    resultLIST = finalNounMerge(inputSTR)
+    result = bbtree(resultLIST)
     #["<ENTITY_DetPhrase>那個</ENTITY_DetPhrase>", "<ENTITY_noun>帽子</ENTITY_noun>", "<AUX>是</AUX>", "<MODIFIER_color>紫色</MODIFIER_color>", "<FUNC_inner>的</FUNC_inner>", "<ENTITY_nouny>女孩</ENTITY_nouny>", "<ACTION_verb>坐</ACTION_verb>", "<FUNC_inner>在</FUNC_inner>", "<ENTITY_nouny>長凳</ENTITY_nouny>", "<RANGE_locality>上</RANGE_locality>"]
     #["((那個((帽子(是(紫色的)))女孩))(坐(在(長凳上))))"]
 
@@ -387,8 +491,14 @@ if __name__ == "__main__":
     #articut = Articut()
     #resultDICT = articut.parse(inputSTR)
     #inputPOS = resultDICT["result_pos"][0]
-    inputPOS = "".join(["<ENTITY_DetPhrase>那個</ENTITY_DetPhrase>", "<ENTITY_noun>帽子</ENTITY_noun>", "<AUX>是</AUX>", "<MODIFIER_color>紫色</MODIFIER_color>", "<FUNC_inner>的</FUNC_inner>", "<ENTITY_nouny>女孩</ENTITY_nouny>", "<ACTION_verb>坐</ACTION_verb>", "<FUNC_inner>在</FUNC_inner>", "<ENTITY_nouny>長凳</ENTITY_nouny>", "<RANGE_locality>上</RANGE_locality>"])
-    bbtree(inputPOS)
+    #inputPOS = "".join(["<ENTITY_DetPhrase>那個</ENTITY_DetPhrase>", "<ENTITY_noun>帽子</ENTITY_noun>", "<AUX>是</AUX>", "<MODIFIER_color>紫色</MODIFIER_color>", "<FUNC_inner>的</FUNC_inner>", "<ENTITY_nouny>女孩</ENTITY_nouny>", "<ACTION_verb>坐</ACTION_verb>", "<FUNC_inner>在</FUNC_inner>", "<ENTITY_nouny>長凳</ENTITY_nouny>", "<RANGE_locality>上</RANGE_locality>"])
+    #bbtree(inputPOS)
+    #l =  ["<ENTITY_DetPhrase>那個</ENTITY_DetPhrase>", "<ENTITY_noun>帽子</ENTITY_noun>", "<AUX>是</AUX>", "<MODIFIER_color>紫色</MODIFIER_color>", "<FUNC_inner>的</FUNC_inner>", "<ENTITY_nouny>女孩</ENTITY_nouny>", "<ACTION_verb>坐</ACTION_verb>", "<FUNC_inner>在</FUNC_inner>", "<ENTITY_nouny>長凳</ENTITY_nouny>", "<RANGE_locality>上</RANGE_locality>"]
+    #result = merge(resultLIST, "<RANGE_locality>", "final")
+    pprint(result)
+    print(purgePAT.sub("", "".join(result)))
+    #result = merge(l, "<ENTITY_DetPhrase>", "initial")
+    #print(result)
 
 
     #print("\n#以 Graph 建立句法樹 >>>")
