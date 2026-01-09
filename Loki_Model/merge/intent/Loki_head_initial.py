@@ -2,7 +2,7 @@
 # -*- coding:utf-8 -*-
 
 """
-    Loki module for head_final
+    Loki module for head_initial
 
     Input:
         inputSTR      str,
@@ -22,7 +22,7 @@ from random import sample
 import json
 import os
 
-INTENT_NAME = "head_final"
+INTENT_NAME = "head_initial"
 CWD_PATH = os.path.dirname(os.path.abspath(__file__))
 
 def import_from_path(module_name, file_path):
@@ -89,68 +89,23 @@ def getReply(utterance, args):
 getResponse = getReply
 def getResult(inputSTR, utterance, args, resultDICT, refDICT, pattern="", toolkitDICT={}):
     debugInfo(inputSTR, utterance)
-    if utterance == "一個軍人":
+    if utterance == "一個軍人是專業的":
         if CHATBOT:
             replySTR = getReply(utterance, args)
             if replySTR:
                 resultDICT["response"] = replySTR
                 resultDICT["source"] = "reply"
         else:
-            resultDICT["final"].append(args[0])
+            resultDICT["initial"].append(args[0])
 
-    if utterance == "不是":
+    if utterance == "那個軍人是專業的":
         if CHATBOT:
             replySTR = getReply(utterance, args)
             if replySTR:
                 resultDICT["response"] = replySTR
                 resultDICT["source"] = "reply"
         else:
-            resultDICT["final"].append(args[0])
-
-    if utterance == "他哥哥":
-        if CHATBOT:
-            replySTR = getReply(utterance, args)
-            if replySTR:
-                resultDICT["response"] = replySTR
-                resultDICT["source"] = "reply"
-        else:
-            resultDICT["final"].append(args[0])
-
-    if utterance == "程式語言":
-        if CHATBOT:
-            replySTR = getReply(utterance, args)
-            if replySTR:
-                resultDICT["response"] = replySTR
-                resultDICT["source"] = "reply"
-        else:
-            resultDICT["final"].append(args[0])
-
-    if utterance == "簡單生活":
-        if CHATBOT:
-            replySTR = getReply(utterance, args)
-            if replySTR:
-                resultDICT["response"] = replySTR
-                resultDICT["source"] = "reply"
-        else:
-            resultDICT["final"].append(args[0])
-
-    if utterance == "那個軍人":
-        if CHATBOT:
-            replySTR = getReply(utterance, args)
-            if replySTR:
-                resultDICT["response"] = replySTR
-                resultDICT["source"] = "reply"
-        else:
-            resultDICT["final"].append(args[0])
-
-    if utterance == "銷售經理":
-        if CHATBOT:
-            replySTR = getReply(utterance, args)
-            if replySTR:
-                resultDICT["response"] = replySTR
-                resultDICT["source"] = "reply"
-        else:
-            resultDICT["final"].append(args[0])
+            resultDICT["initial"].append(args[0])
 
     return resultDICT
 
@@ -158,5 +113,5 @@ def getResult(inputSTR, utterance, args, resultDICT, refDICT, pattern="", toolki
 if __name__ == "__main__":
     from pprint import pprint
 
-    resultDICT = getResult("不是", "不是", [], {}, {})
+    resultDICT = getResult("一個軍人是專業的", "一個軍人是專業的", [], {}, {})
     pprint(resultDICT)

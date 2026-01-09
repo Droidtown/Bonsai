@@ -131,5 +131,5 @@ if __name__ == "__main__":
     COMM_TEST(contentSTR)
 
     # 執行 Loki
-    resultDICT = askLoki(contentSTR, filter=filterLIST, splitLIST=splitLIST, refDICT=refDICT)
+    resultDICT = askLoki(contentSTR, filterLIST=filterLIST, splitLIST=splitLIST, refDICT=refDICT)
     pprint(resultDICT)
