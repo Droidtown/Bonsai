@@ -498,6 +498,8 @@ def merge(sentenceLIST, head, headParameter):
             else:
                 if i == 0 and sentenceLIST[i] != "":
                     resultLIST.append(sentenceLIST[i])
+                elif i == 0 and headParameter == "initial":
+                    pass
                 elif i == 1 and sentenceLIST[i] == "":
                     pass
             #</ad-hoc>
@@ -514,7 +516,7 @@ def bbtree(inputSTR):
     sentenceLIST = finalNounMerge(inputSTR)
 
     leftMergeLIST = ["<RANGE_locality>"]
-    rightMergeLIST = ["<FUNC_inner>在", "<ACTION_verb>"]
+    rightMergeLIST = ["<FUNC_inner>在", "<FUNC_conjunction>", "<ACTION_verb>"]
     linkerMergeLIST = ["<AUX>"]
     EPLIST = [("<ENTITY_DetPhrase>", "<ENTITY"), ("<ENTITY_DetPhrase>", "<FUNC_inner>的"), ("<MODIFIER>", "<FUNC_inner>的"), ("<ENTITY_pronoun>", "<FUNC_inner>的"), ("(<ENTITY_pronoun>", "<ENTITY"), ("(<ENTITY_DetPhrase>", "<ENTITY")]
     VPLIST = [("(<ACTION_")]
