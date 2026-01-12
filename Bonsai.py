@@ -394,7 +394,6 @@ def link(sentenceLIST, linker):
                 elif sentenceLIST[i].startswith("<MODIFIER>"):
                     resultLIST.append(f"({sentenceLIST[i]}, {sentenceLIST[i+1]})")
                     sentenceLIST[i+1] = ""
-                #</ad-hoc>
                 else:
                     resultLIST.append(f"({sentenceLIST[i]}, ({sentenceLIST[i+1]}, {sentenceLIST[i+2]}))")
                     sentenceLIST[i+1] = ""
@@ -404,15 +403,19 @@ def link(sentenceLIST, linker):
                     if sentenceLIST[i].startswith("<MODIFIER>"):
                         resultLIST.append(f"({sentenceLIST[i]}, {sentenceLIST[i+1]})")
                         sentenceLIST[i+1] = ""
-                    #</ad-hoc>
+
                     else:
                         resultLIST.append(f"({sentenceLIST[i]}, ({sentenceLIST[i+1]}, {sentenceLIST[i+2]}))")
                         sentenceLIST[i+1] = ""
                         sentenceLIST[i+2] = ""
                 except:
-                    resultLIST.append(f"({sentenceLIST[i]}, ({sentenceLIST[i+1]}, {sentenceLIST[i+2]}))")
-                    sentenceLIST[i+1] = ""
-                    sentenceLIST[i+2] = ""
+                    try:
+                        resultLIST.append(f"({sentenceLIST[i]}, ({sentenceLIST[i+1]}, {sentenceLIST[i+2]}))")
+                        sentenceLIST[i+1] = ""
+                        sentenceLIST[i+2] = ""
+                    except:
+                        pass
+            #</ad-hoc>
         else:
             resultLIST.append(sentenceLIST[i])
     resultLIST.append(sentenceLIST[-1])
@@ -519,6 +522,16 @@ def merge(sentenceLIST, head, headParameter):
                     pass
                 elif i == 1 and sentenceLIST[i].startswith("<FUNC_inner>得"):
                     resultLIST.append(sentenceLIST[i])
+                elif sentenceLIST[i].startswith(head) and sentenceLIST[i-1].endswith("的</FUNC_inner>)") and headParameter == "final":
+                    #try:
+                    if sentenceLIST[i-2].endswith("</MODIFIER>") or  sentenceLIST[i-2].endswith("</MODIFIER_color>"):
+                        pass
+                    else:
+                        resultLIST.append(f"({sentenceLIST[i-1]}, {sentenceLIST[i]})")
+                        sentenceLIST[i-1] = ""
+                    #except:
+                        #resultLIST.append(f"({sentenceLIST[i-1]}, {sentenceLIST[i]})")
+                        #sentenceLIST[i-1] = ""
             #</ad-hoc>
                 else:
                     resultLIST.append(f"({sentenceLIST[i-1]}, {sentenceLIST[i]})")
@@ -532,8 +545,8 @@ def merge(sentenceLIST, head, headParameter):
 def bbtree(inputSTR):
     sentenceLIST = finalNounMerge(inputSTR)
 
-    leftMergeLIST = ["<RANGE_locality>"]
-    rightMergeLIST = ["<FUNC_inner>在", "<FUNC_inner>從", "<AUX>為", "<FUNC_conjunction>", "<ACTION_verb>", "<VerbP>"]
+    leftMergeLIST = ["<RANGE_locality>"]#, "<ENTITY_n", "<ENTITY_o"]
+    rightMergeLIST = ["<FUNC_inner>在", "<FUNC_inner>從", "<AUX>為", "<FUNC_conjunction>", "<ACTION_verb>", "<VerbP>", "<ENTITY_possessive>"]
     linkerMergeLIST = ["<AUX>", "<FUNC_inner>得", "(<FUNC_inner>在"]
     EPLIST = [("<ENTITY_DetPhrase>", "<ENTITY"), ("<ENTITY_DetPhrase>", "<FUNC_inner>的"), ("<MODIFIER>", "<FUNC_inner>的"), ("<ENTITY_pronoun>", "<FUNC_inner>的"), ("(<ENTITY_pronoun>", "<ENTITY"), ("(<ENTITY_DetPhrase>", "<ENTITY")]
     VPLIST = ["(<ACTION_",]
@@ -579,10 +592,11 @@ if __name__ == "__main__":
                  "在學校裡學習", "給他寫信", "從東邊來", "向前走", "跟他談話", "為他高興",
                  "紅的", "中文的", "賣菜的", "寫字用的",
                  "麥克在北京語言文化大學學習漢語",
-                 "工人和農民", "氣得說不出話來", "張小敬在工廠工作", "張小敬去上海了"
+                 "工人和農民", "氣得說不出話來", "張小敬在工廠工作", "張小敬去上海了",
+                 "我姐姐是國中的學生"
                  ]
     # to_be_tested_in_next_version_Articut: "好得不得了", "暖和起來", "氣得說不出話來"
-    inputLIST =  ["我姐姐是國中的學生"]
+    inputLIST =  ["那個帽子是紫色的女孩坐在紅色長凳上", "我姐姐是國中的學生"]
     for i in inputLIST:
         print(i)
         result = bbtree(i)
