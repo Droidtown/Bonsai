@@ -384,20 +384,35 @@ def link(sentenceLIST, linker):
     for i in range(len(sentenceLIST)-1):
         if sentenceLIST[i+1].startswith(f"{linker}"):
             #<ad-hoc>
-            if sentenceLIST[i+3].startswith("<FUNC_inner>的") and i+4 == len(sentenceLIST):
-                #resultLIST.append(f"({sentenceLIST[i]}, ({sentenceLIST[i+1]}, ({sentenceLIST[i+2]}, {sentenceLIST[i+3]})))")
-                resultLIST.append(f"({sentenceLIST[i]}, ({sentenceLIST[i+1]}, {sentenceLIST[i+2]}))")
-                sentenceLIST[i+1] = ""
-                sentenceLIST[i+2] = ""
-                #sentenceLIST[i+3] = ""
-            elif sentenceLIST[i].startswith("<MODIFIER>"):
-                resultLIST.append(f"({sentenceLIST[i]}, {sentenceLIST[i+1]})")
-                sentenceLIST[i+1] = ""
-            #</ad-hoc>
-            else:
-                resultLIST.append(f"({sentenceLIST[i]}, ({sentenceLIST[i+1]}, {sentenceLIST[i+2]}))")
-                sentenceLIST[i+1] = ""
-                sentenceLIST[i+2] = ""
+            try:
+                if sentenceLIST[i+3].startswith("<FUNC_inner>的") and i+4 == len(sentenceLIST):
+                    #resultLIST.append(f"({sentenceLIST[i]}, ({sentenceLIST[i+1]}, ({sentenceLIST[i+2]}, {sentenceLIST[i+3]})))")
+                    resultLIST.append(f"({sentenceLIST[i]}, ({sentenceLIST[i+1]}, {sentenceLIST[i+2]}))")
+                    sentenceLIST[i+1] = ""
+                    sentenceLIST[i+2] = ""
+                    #sentenceLIST[i+3] = ""
+                elif sentenceLIST[i].startswith("<MODIFIER>"):
+                    resultLIST.append(f"({sentenceLIST[i]}, {sentenceLIST[i+1]})")
+                    sentenceLIST[i+1] = ""
+                #</ad-hoc>
+                else:
+                    resultLIST.append(f"({sentenceLIST[i]}, ({sentenceLIST[i+1]}, {sentenceLIST[i+2]}))")
+                    sentenceLIST[i+1] = ""
+                    sentenceLIST[i+2] = ""
+            except:
+                try:
+                    if sentenceLIST[i].startswith("<MODIFIER>"):
+                        resultLIST.append(f"({sentenceLIST[i]}, {sentenceLIST[i+1]})")
+                        sentenceLIST[i+1] = ""
+                    #</ad-hoc>
+                    else:
+                        resultLIST.append(f"({sentenceLIST[i]}, ({sentenceLIST[i+1]}, {sentenceLIST[i+2]}))")
+                        sentenceLIST[i+1] = ""
+                        sentenceLIST[i+2] = ""
+                except:
+                    resultLIST.append(f"({sentenceLIST[i]}, ({sentenceLIST[i+1]}, {sentenceLIST[i+2]}))")
+                    sentenceLIST[i+1] = ""
+                    sentenceLIST[i+2] = ""
         else:
             resultLIST.append(sentenceLIST[i])
     resultLIST.append(sentenceLIST[-1])
@@ -502,6 +517,8 @@ def merge(sentenceLIST, head, headParameter):
                     pass
                 elif i == 1 and sentenceLIST[i] == "":
                     pass
+                elif i == 1 and sentenceLIST[i].startswith("<FUNC_inner>得"):
+                    resultLIST.append(sentenceLIST[i])
             #</ad-hoc>
                 else:
                     resultLIST.append(f"({sentenceLIST[i-1]}, {sentenceLIST[i]})")
@@ -516,10 +533,10 @@ def bbtree(inputSTR):
     sentenceLIST = finalNounMerge(inputSTR)
 
     leftMergeLIST = ["<RANGE_locality>"]
-    rightMergeLIST = ["<FUNC_inner>在", "<FUNC_conjunction>", "<ACTION_verb>"]
-    linkerMergeLIST = ["<AUX>"]
+    rightMergeLIST = ["<FUNC_inner>在", "<FUNC_inner>從", "<AUX>為", "<FUNC_conjunction>", "<ACTION_verb>", "<VerbP>"]
+    linkerMergeLIST = ["<AUX>", "<FUNC_inner>得", "(<FUNC_inner>在"]
     EPLIST = [("<ENTITY_DetPhrase>", "<ENTITY"), ("<ENTITY_DetPhrase>", "<FUNC_inner>的"), ("<MODIFIER>", "<FUNC_inner>的"), ("<ENTITY_pronoun>", "<FUNC_inner>的"), ("(<ENTITY_pronoun>", "<ENTITY"), ("(<ENTITY_DetPhrase>", "<ENTITY")]
-    VPLIST = [("(<ACTION_")]
+    VPLIST = ["(<ACTION_",]
     CLPLIST = [("<ENTITY_classifier>", "<ENTITY")]
 
     resultLIST = []
@@ -561,9 +578,11 @@ if __name__ == "__main__":
                  "我去", "頭疼", "學習努力", "個子高",
                  "在學校裡學習", "給他寫信", "從東邊來", "向前走", "跟他談話", "為他高興",
                  "紅的", "中文的", "賣菜的", "寫字用的",
-                 "麥克在北京語言文化大學學習漢語"
+                 "麥克在北京語言文化大學學習漢語",
+                 "工人和農民", "氣得說不出話來", "張小敬在工廠工作", "張小敬去上海了"
                  ]
-    #inputLIST =  ["給他寫信", "學習努力", "請他來", "為他高興", "跟他談話", "唱得很好", "急得不得了"]
+    # to_be_tested_in_next_version_Articut: "好得不得了", "暖和起來", "氣得說不出話來"
+    inputLIST =  ["我姐姐是國中的學生"]
     for i in inputLIST:
         print(i)
         result = bbtree(i)
